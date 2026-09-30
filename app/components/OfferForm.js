@@ -9,6 +9,17 @@ const empty = {
   missions: "", profile: "", conditions: "", extra_info: "",
 };
 
+// Défini au niveau module : sinon il serait recréé à chaque frappe,
+// ce qui remonterait les <input> et ferait "sauter" les lettres saisies.
+function Field({ label, children, required, full }) {
+  return (
+    <div className={full ? "sm:col-span-2" : ""}>
+      <label className="field-label">{label}{required && <span className="text-rose-500"> *</span>}</label>
+      {children}
+    </div>
+  );
+}
+
 export default function OfferForm({ tree, initial, offerId, status }) {
   const router = useRouter();
   const [f, setF] = useState({ ...empty, ...(initial || {}) });
@@ -68,13 +79,6 @@ export default function OfferForm({ tree, initial, offerId, status }) {
       router.refresh();
     } catch (e) { setErr(e.message); setBusy(""); }
   }
-
-  const Field = ({ label, children, required, full }) => (
-    <div className={full ? "sm:col-span-2" : ""}>
-      <label className="field-label">{label}{required && <span className="text-rose-500"> *</span>}</label>
-      {children}
-    </div>
-  );
 
   return (
     <div className="space-y-6">
