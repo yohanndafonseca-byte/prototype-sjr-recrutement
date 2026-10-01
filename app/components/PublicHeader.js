@@ -11,7 +11,6 @@ const NAV = [
 export default function PublicHeader() {
   return (
     <header className="bg-white">
-      {/* Bandeau utilitaire */}
       <div
         className="text-white"
         style={{ background: "var(--sjr-primary-dark)" }}
@@ -22,17 +21,13 @@ export default function PublicHeader() {
           </span>
 
           <div className="flex items-center gap-4">
-            <a
-              className="opacity-90 hover:opacity-100"
-              href="#"
-            >
+            <a className="opacity-90 hover:opacity-100" href="#">
               Mes services en ligne
             </a>
           </div>
         </div>
       </div>
 
-      {/* Barre principale */}
       <div
         className="border-b"
         style={{ borderColor: "var(--sjr-line)" }}
@@ -64,9 +59,7 @@ export default function PublicHeader() {
                 key={n.label}
                 href={n.href}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
-                  n.active
-                    ? "text-white"
-                    : "hover:bg-slate-50"
+                  n.active ? "text-white" : "hover:bg-slate-50"
                 }`}
                 style={
                   n.active
