@@ -9,7 +9,7 @@ const NAV = [
 ];
 
 export default function PublicHeader() {
-  return (
+  return
     <header className="bg-white">
       {/* Bandeau utilitaire */}
       <div className="text-white" style={{ background: "var(--sjr-primary-dark)" }}>
@@ -17,8 +17,6 @@ export default function PublicHeader() {
           <span className="hidden sm:inline opacity-90">Site officiel de la Ville de Saint-Jean-de-la-Ruelle</span>
           <div className="flex items-center gap-4">
             <a className="opacity-90 hover:opacity-100" href="#">Mes services en ligne</a>
-            <span className="opacity-40">|</span>
-            <Link className="opacity-90 hover:opacity-100" href="/admin/login">Accès agents</Link>
           </div>
         </div>
       </div>
