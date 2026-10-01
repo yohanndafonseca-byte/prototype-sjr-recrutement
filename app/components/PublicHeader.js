@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const NAV = [
-  { label: "Découvrir la ville", href: "#" },
-  { label: "La Mairie", href: "#" },
-  { label: "Bien vivre en ville", href: "#" },
-  { label: "Vie associative", href: "#" },
+  { label: "Découvrir Saint Jean de la Ruelle", href: "https://www.ville-saintjeandelaruelle.fr/" },
+  { label: "La Mairie", href: "https://www.ville-saintjeandelaruelle.fr/la-mairie" },
+  { label: "Bien vivre en ville", href: "https://www.ville-saintjeandelaruelle.fr/bien-vivre-en-ville" },
+  { label: "Vie associative", href: "https://www.ville-saintjeandelaruelle.fr/vie-associative" },
   { label: "Recrutement", href: "/recrutement", active: true },
 ];
 
@@ -58,6 +58,8 @@ export default function PublicHeader() {
               <Link
                 key={n.label}
                 href={n.href}
+                target={n.href.startsWith("http") ? "_blank" : undefined}
+                rel={n.href.startsWith("http") ? "noopener noreferrer" : undefined}
                 className={`rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
                   n.active ? "text-white" : "hover:bg-slate-50"
                 }`}

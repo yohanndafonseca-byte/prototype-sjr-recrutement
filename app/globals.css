@@ -5,14 +5,14 @@
 :root {
   --sjr-bg: #f3f6fa;
   --sjr-surface: #ffffff;
-  --sjr-primary: #0b4f8a;
-  --sjr-primary-dark: #083b68;
-  --sjr-primary-soft: #e7f0f8;
-  --sjr-accent: #1e9e6a;
-  --sjr-accent-dark: #167a52;
-  --sjr-ink: #14243a;
-  --sjr-muted: #5b6b7f;
-  --sjr-line: #e3e9f1;
+  --sjr-primary: #1f7f8c;
+  --sjr-primary-dark: #14606b;
+  --sjr-primary-soft: #e3f1f3;
+  --sjr-accent: #6aa84f;
+  --sjr-accent-dark: #52863d;
+  --sjr-ink: #17282c;
+  --sjr-muted: #5c6b70;
+  --sjr-line: #e2eaec;
 }
 
 html { -webkit-text-size-adjust: 100%; }
@@ -51,3 +51,4 @@ body {
 }
 
 .prose-block { white-space: pre-line; line-height: 1.65; }
+
