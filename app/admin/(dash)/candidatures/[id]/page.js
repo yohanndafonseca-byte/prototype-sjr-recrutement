@@ -66,6 +66,12 @@ export default async function CandidatureDetail({ params }) {
               <Info label="Adresse" value={a.address} />
               <Info label="Code postal / Ville" value={[a.postal_code, a.city].filter(Boolean).join(" ")} />
             </div>
+            <div className="mt-3 flex flex-wrap gap-2 border-t pt-3" style={{ borderColor: "var(--sjr-line)" }}>
+              <span className="badge" style={{ background: "#e6f4ea", color: "#137333" }}>✓ Traitement accepté</span>
+              {a.consent_vivier
+                ? <span className="badge" style={{ background: "#e8f0fe", color: "#1967d2" }}>✓ Conservation en vivier (2 ans) acceptée</span>
+                : <span className="badge" style={{ background: "#fde8e8", color: "#b4231f" }}>✗ Vivier refusé — à supprimer après recrutement</span>}
+            </div>
           </section>
 
           {/* Documents */}

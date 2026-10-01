@@ -28,6 +28,8 @@ export default function ApplyForm({ offer }) {
   const [files, setFiles] = useState({});
   const [errors, setErrors] = useState({});
   const [certified, setCertified] = useState(false);
+  const [consentProcessing, setConsentProcessing] = useState(false);
+  const [consentVivier, setConsentVivier] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
 
@@ -65,10 +67,13 @@ export default function ApplyForm({ offer }) {
 
   async function submit() {
     if (!certified) { setServerError("Veuillez certifier l'exactitude des informations."); return; }
+    if (!consentProcessing) { setServerError("Vous devez accepter le traitement de vos données pour postuler."); return; }
     setSubmitting(true); setServerError("");
     try {
       const fd = new FormData();
       fd.append("offer_id", String(offer.id));
+      fd.append("consent_processing", consentProcessing ? "1" : "0");
+      fd.append("consent_vivier", consentVivier ? "1" : "0");
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
       Object.entries(files).forEach(([kind, file]) => { if (file) fd.append(kind, file); });
       const res = await fetch("/api/candidatures", { method: "POST", body: fd });
@@ -182,6 +187,27 @@ export default function ApplyForm({ offer }) {
               <input type="checkbox" checked={certified} onChange={(e) => setCertified(e.target.checked)} className="mt-0.5 h-4 w-4" />
               <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>Je certifie l'exactitude des informations renseignées.</span>
             </label>
+
+            <label className="mt-3 flex items-start gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)" }}>
+              <input type="checkbox" checked={consentProcessing} onChange={(e) => setConsentProcessing(e.target.checked)} className="mt-0.5 h-4 w-4" />
+              <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>
+                J'accepte que les informations et documents transmis soient traités par la Ville de Saint-Jean-de-la-Ruelle
+                dans le cadre de l'étude de ma candidature. <span className="text-rose-500">*</span>
+              </span>
+            </label>
+
+            <label className="mt-3 flex items-start gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)" }}>
+              <input type="checkbox" checked={consentVivier} onChange={(e) => setConsentVivier(e.target.checked)} className="mt-0.5 h-4 w-4" />
+              <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>
+                J'accepte que ma candidature soit conservée en vivier (CVthèque) pendant 2 ans,
+                afin d'être recontacté(e) pour d'autres postes. <span style={{ color: "var(--sjr-muted)" }}>(facultatif)</span>
+              </span>
+            </label>
+
+            <p className="mt-3 text-xs" style={{ color: "var(--sjr-muted)" }}>
+              Conformément au RGPD, vous disposez d'un droit d'accès, de rectification et de suppression de vos données.
+              Sans conservation en vivier, votre candidature sera supprimée à l'issue du recrutement.
+            </p>
             {serverError && <p className="mt-3 rounded-lg bg-rose-50 px-3 py-2 text-sm text-rose-700">{serverError}</p>}
           </div>
         )}

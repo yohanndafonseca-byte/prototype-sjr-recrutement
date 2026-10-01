@@ -23,10 +23,16 @@ export async function POST(req) {
       return NextResponse.json({ error: "Le CV est obligatoire." }, { status: 400 });
     }
 
+    const consentProcessing = fd.get("consent_processing") === "1";
+    if (!consentProcessing) {
+      return NextResponse.json({ error: "Vous devez accepter le traitement de vos données pour postuler." }, { status: 400 });
+    }
     const data = {
       civility: fd.get("civility"), last_name: fd.get("last_name"), first_name: fd.get("first_name"),
       address: fd.get("address"), postal_code: fd.get("postal_code"), city: fd.get("city"),
       email: fd.get("email"), phone: fd.get("phone"),
+      consent_processing: consentProcessing,
+      consent_vivier: fd.get("consent_vivier") === "1",
     };
     if (!data.last_name || !data.first_name) {
       return NextResponse.json({ error: "Nom et prénom obligatoires." }, { status: 400 });
