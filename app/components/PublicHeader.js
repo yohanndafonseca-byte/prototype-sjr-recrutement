@@ -27,17 +27,13 @@ export default function PublicHeader() {
       <div className="border-b" style={{ borderColor: "var(--sjr-line)" }}>
         <div className="container-sjr flex items-center justify-between py-4">
           <Link href="/recrutement" className="flex items-center gap-3">
-            <span
-              className="grid h-11 w-11 place-items-center rounded-lg font-black text-white"
-              style={{ background: "var(--sjr-primary)" }}
-            >
-              SJR
-            </span>
+            <img
+              src="/logo-sjr.png"
+              alt="Ville de Saint-Jean-de-la-Ruelle"
+              className="h-12 w-auto"
+            />
             <span className="leading-tight">
               <span className="block text-[15px] font-bold" style={{ color: "var(--sjr-ink)" }}>
-                Ville de Saint-Jean-de-la-Ruelle
-              </span>
-              <span className="block text-xs" style={{ color: "var(--sjr-muted)" }}>
                 Espace recrutement
               </span>
             </span>
