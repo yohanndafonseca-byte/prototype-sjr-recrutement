@@ -1,3 +1,13 @@
+import Link from "next/link";
+
+const NAV = [
+  { label: "Découvrir la ville", href: "#" },
+  { label: "La Mairie", href: "#" },
+  { label: "Bien vivre en ville", href: "#" },
+  { label: "Vie associative", href: "#" },
+  { label: "Recrutement", href: "/recrutement", active: true },
+];
+
 export default function PublicHeader() {
   return (
     <header className="bg-white">
