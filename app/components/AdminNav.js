@@ -1,13 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { IconGrid, IconBriefcase, IconInbox, IconStar } from "./Icons";
+import { IconGrid, IconBriefcase, IconInbox, IconStar, IconSettings } from "./Icons";
 
 const ITEMS = [
   { href: "/admin", label: "Tableau de bord", icon: IconGrid, exact: true },
   { href: "/admin/offres", label: "Offres", icon: IconBriefcase },
   { href: "/admin/candidatures", label: "Candidatures", icon: IconInbox },
   { href: "/admin/recrutements", label: "Recrutements finalisés", icon: IconStar },
+  { href: "/admin/parametres", label: "Paramètres", icon: IconSettings },
 ];
 
 export default function AdminNav() {
