@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { OfferBadge, AppBadge } from "@/app/components/StatusBadge";
 import PositionMeter from "@/app/components/PositionMeter";
-import { IconArrowLeft, IconChevron } from "@/app/components/Icons";
+import { IconArrowLeft, IconChevron, IconDownload } from "@/app/components/Icons";
 import { getOffer } from "@/lib/offers";
 import { listByOffer } from "@/lib/applications";
 import { fmtDate, fmtDateTime, initials } from "@/lib/format";
@@ -39,7 +39,14 @@ export default async function OffreRH({ params }) {
           </div>
           <p className="mt-1 text-sm" style={{ color: "var(--sjr-muted)" }}>{o.reference} · {o.direction_name} · {o.sector_name}</p>
         </div>
-        <Link href={`/admin/offres/${o.id}/modifier`} className="btn-primary">Modifier l'offre</Link>
+        <div className="flex flex-wrap gap-2">
+          {apps.length > 0 && (
+            <a href={`/api/admin/candidatures/export-zip?offre=${o.id}`} className="btn-outline">
+              <IconDownload className="h-4 w-4" /> Télécharger les dossiers (ZIP)
+            </a>
+          )}
+          <Link href={`/admin/offres/${o.id}/modifier`} className="btn-primary">Modifier l'offre</Link>
+        </div>
       </div>
 
       <div className="mt-5 grid gap-6 lg:grid-cols-[340px_1fr]">

@@ -37,12 +37,20 @@ export default async function CandidaturesPage({ searchParams }) {
           <h1 className="text-2xl font-bold" style={{ color: "var(--sjr-ink)" }}>Candidatures</h1>
           <p className="text-sm" style={{ color: "var(--sjr-muted)" }}>{apps.length} candidature{apps.length > 1 ? "s" : ""} affichée{apps.length > 1 ? "s" : ""}</p>
         </div>
-        <a
-          href={`/api/admin/candidatures/export${(() => { const p = new URLSearchParams(); if (statut) p.set("statut", statut); if (offre) p.set("offre", offre); const s = p.toString(); return s ? "?" + s : ""; })()}`}
-          className="btn-outline"
-        >
-          <IconDownload className="h-4 w-4" /> Exporter (Excel)
-        </a>
+        <div className="flex flex-wrap gap-2">
+          <a
+            href={`/api/admin/candidatures/export-zip${(() => { const p = new URLSearchParams(); if (statut) p.set("statut", statut); if (offre) p.set("offre", offre); const s = p.toString(); return s ? "?" + s : ""; })()}`}
+            className="btn-outline"
+          >
+            <IconDownload className="h-4 w-4" /> Télécharger les dossiers (ZIP)
+          </a>
+          <a
+            href={`/api/admin/candidatures/export${(() => { const p = new URLSearchParams(); if (statut) p.set("statut", statut); if (offre) p.set("offre", offre); const s = p.toString(); return s ? "?" + s : ""; })()}`}
+            className="btn-outline"
+          >
+            <IconDownload className="h-4 w-4" /> Exporter (Excel)
+          </a>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
