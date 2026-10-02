@@ -1,3 +1,7 @@
+#!/usr/bin/env bash
+# Ajoute la mise en avant "Candidature spontanee" sur la page recrutement. A lancer a la racine.
+set -e
+cat > "app/recrutement/page.js" << 'SJREOF'
 import Link from "next/link";
 import PublicHeader from "@/app/components/PublicHeader";
 import PublicFooter from "@/app/components/PublicFooter";
@@ -65,3 +69,6 @@ export default async function RecrutementPage() {
   );
 }
 
+SJREOF
+
+echo "=== Carte candidature spontanee installee. Lance : npm run build ==="
