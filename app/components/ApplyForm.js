@@ -135,7 +135,7 @@ export default function ApplyForm({ offer }) {
             <label className="mt-4 flex items-center gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)", background: "var(--sjr-primary-soft)" }}>
               <input type="checkbox" checked={isAgent} onChange={(e) => { const v = e.target.checked; setIsAgent(v); if (!v) onFile("entretiens", null); }} className="h-4 w-4" />
               <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>
-                Je suis déjà agent / fonctionnaire de la Ville de Saint-Jean-de-la-Ruelle
+                Je suis déjà agent / fonctionnaire titulaire en collectivité
               </span>
             </label>
 
