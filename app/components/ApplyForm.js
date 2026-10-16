@@ -26,6 +26,7 @@ export default function ApplyForm({ offer }) {
   const [step, setStep] = useState(0);
   const [form, setForm] = useState({ civility: "Madame", last_name: "", first_name: "", phone: "", email: "", address: "", postal_code: "", city: "" });
   const [files, setFiles] = useState({});
+  const [isAgent, setIsAgent] = useState(false);
   const [errors, setErrors] = useState({});
   const [certified, setCertified] = useState(false);
   const [consentProcessing, setConsentProcessing] = useState(false);
@@ -130,8 +131,16 @@ export default function ApplyForm({ offer }) {
           <div>
             <h2 className="text-lg font-semibold" style={{ color: "var(--sjr-ink)" }}>Vos documents</h2>
             <p className="mt-1 text-sm" style={{ color: "var(--sjr-muted)" }}>Formats acceptés : PDF, Word, image — {MAX_FILE_MB} Mo maximum par fichier.</p>
+
+            <label className="mt-4 flex items-center gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)", background: "var(--sjr-primary-soft)" }}>
+              <input type="checkbox" checked={isAgent} onChange={(e) => { const v = e.target.checked; setIsAgent(v); if (!v) onFile("entretiens", null); }} className="h-4 w-4" />
+              <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>
+                Je suis déjà agent / fonctionnaire de la Ville de Saint-Jean-de-la-Ruelle
+              </span>
+            </label>
+
             <div className="mt-5 space-y-3">
-              {Object.entries(DOC_KINDS).map(([kind, meta]) => (
+              {Object.entries(DOC_KINDS).filter(([kind, meta]) => !meta.agentOnly || isAgent).map(([kind, meta]) => (
                 <div key={kind} className="rounded-lg border p-4" style={{ borderColor: errors[kind] ? "#f43f5e" : "var(--sjr-line)" }}>
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <div className="flex items-center gap-3">
@@ -227,3 +236,4 @@ export default function ApplyForm({ offer }) {
     </div>
   );
 }
+
