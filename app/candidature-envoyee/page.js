@@ -7,6 +7,7 @@ export const dynamic = "force-dynamic";
 
 export default function Confirmation({ searchParams }) {
   const ref = searchParams?.ref;
+  const token = searchParams?.t;
   return (
     <div className="flex min-h-screen flex-col">
       <PublicHeader />
@@ -27,7 +28,16 @@ export default function Confirmation({ searchParams }) {
                 <div className="font-mono text-sm font-semibold" style={{ color: "var(--sjr-primary-dark)" }}>{ref}</div>
               </div>
             )}
-            <div className="mt-8">
+            {token && (
+              <p className="mx-auto mt-5 max-w-md text-sm" style={{ color: "var(--sjr-muted)" }}>
+                Besoin de compléter ou corriger votre dossier ? Vous pouvez le faire tant que votre candidature
+                n'a pas été traitée. Le lien vous a aussi été envoyé par e-mail.
+              </p>
+            )}
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              {token && (
+                <Link href={`/ma-candidature/${token}`} className="btn-outline">Modifier ma candidature</Link>
+              )}
               <Link href="/recrutement" className="btn-primary">Voir les autres offres</Link>
             </div>
           </div>

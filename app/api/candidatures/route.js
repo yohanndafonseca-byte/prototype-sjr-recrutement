@@ -27,6 +27,13 @@ export async function POST(req) {
     if (!consentProcessing) {
       return NextResponse.json({ error: "Vous devez accepter le traitement de vos données pour postuler." }, { status: 400 });
     }
+
+    if (offer.diploma_required) {
+      const diplomas = fd.getAll("diplome").filter((f) => f && typeof f !== "string" && f.size > 0);
+      if (diplomas.length === 0) {
+        return NextResponse.json({ error: `Le diplôme demandé est obligatoire${offer.diploma_label ? ` : ${offer.diploma_label}` : ""}.` }, { status: 400 });
+      }
+    }
     const data = {
       civility: fd.get("civility"), last_name: fd.get("last_name"), first_name: fd.get("first_name"),
       address: fd.get("address"), postal_code: fd.get("postal_code"), city: fd.get("city"),
@@ -42,16 +49,17 @@ export async function POST(req) {
     const app = await getApplication(created.id);
 
     for (const kind of Object.keys(DOC_KINDS)) {
-      const file = fd.get(kind);
-      if (!file || typeof file === "string" || file.size === 0) continue;
-      if (!extOk(file.name)) return NextResponse.json({ error: `Format non accepté pour ${DOC_KINDS[kind].label}.` }, { status: 400 });
-      if (file.size > MAX_FILE_MB * 1024 * 1024) return NextResponse.json({ error: `${DOC_KINDS[kind].label} : fichier trop volumineux.` }, { status: 400 });
-      const buf = Buffer.from(await file.arrayBuffer());
-      await saveDocument(app, kind, file.name, buf, file.type);
+      for (const file of fd.getAll(kind)) {
+        if (!file || typeof file === "string" || file.size === 0) continue;
+        if (!extOk(file.name)) return NextResponse.json({ error: `Format non accepté pour ${DOC_KINDS[kind].label}.` }, { status: 400 });
+        if (file.size > MAX_FILE_MB * 1024 * 1024) return NextResponse.json({ error: `${DOC_KINDS[kind].label} : fichier trop volumineux.` }, { status: 400 });
+        const buf = Buffer.from(await file.arrayBuffer());
+        await saveDocument(app, kind, file.name, buf, file.type);
+      }
     }
 
     await syncApplication(await getApplication(created.id), "Candidature reçue");
-    return NextResponse.json({ ok: true, public_ref: created.public_ref, id: created.id });
+    return NextResponse.json({ ok: true, public_ref: created.public_ref, id: created.id, edit_token: created.edit_token });
   } catch (e) {
     console.error("[candidatures POST]", e);
     return NextResponse.json({ error: "Une erreur est survenue lors de l'envoi." }, { status: 500 });

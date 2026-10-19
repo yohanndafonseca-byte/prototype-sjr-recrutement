@@ -6,6 +6,7 @@ import { CONTRACT_TYPES, WORK_TIMES } from "@/lib/constants";
 const empty = {
   title: "", sector_id: "", direction_id: "", pole_id: "", contract_type: "",
   work_time: "", positions_total: 1, deadline: "", keywords: "",
+  diploma_label: "", diploma_required: false,
   missions: "", profile: "", conditions: "", extra_info: "",
 };
 
@@ -36,6 +37,7 @@ export default function OfferForm({ tree, initial, offerId, status }) {
       title: f.title.trim(), sector_id: f.sector_id || null, direction_id: f.direction_id || null,
       pole_id: f.pole_id || null, contract_type: f.contract_type || null, work_time: f.work_time || null,
       positions_total: Number(f.positions_total) || 1, deadline: f.deadline || null, keywords: f.keywords,
+      diploma_label: (f.diploma_label || "").trim(), diploma_required: !!f.diploma_required,
       missions: f.missions, profile: f.profile, conditions: f.conditions, extra_info: f.extra_info,
     };
   }
@@ -126,6 +128,15 @@ export default function OfferForm({ tree, initial, offerId, status }) {
           </Field>
           <Field label="Mots-clés (aident la recherche des candidats)" full>
             <input className="field" value={f.keywords} onChange={(e) => set("keywords", e.target.value)} placeholder="ex. maintenance, bâtiment, plomberie" />
+          </Field>
+          <Field label="Diplôme demandé (intitulé)">
+            <input className="field" value={f.diploma_label} onChange={(e) => set("diploma_label", e.target.value)} placeholder="ex. BPJEPS, Bafa, DEAP — laisser vide si aucun" />
+          </Field>
+          <Field label="Ce diplôme est">
+            <select className="field" value={f.diploma_required ? "1" : "0"} onChange={(e) => set("diploma_required", e.target.value === "1")} disabled={!f.diploma_label.trim()}>
+              <option value="0">Facultatif</option>
+              <option value="1">Obligatoire</option>
+            </select>
           </Field>
         </div>
       </div>

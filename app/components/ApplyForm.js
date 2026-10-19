@@ -21,20 +21,32 @@ function extOk(name) {
   return dot >= 0 && ACCEPTED_EXT.includes(name.slice(dot).toLowerCase());
 }
 
-export default function ApplyForm({ offer }) {
+export default function ApplyForm({ offer, mode = "create", initial = null, existingDocs = [], token = null }) {
   const router = useRouter();
+  const isEdit = mode === "edit";
   const [step, setStep] = useState(0);
-  const [form, setForm] = useState({ civility: "Madame", last_name: "", first_name: "", phone: "", email: "", address: "", postal_code: "", city: "" });
+  const [form, setForm] = useState({
+    civility: initial?.civility || "Madame",
+    last_name: initial?.last_name || "",
+    first_name: initial?.first_name || "",
+    phone: initial?.phone || "",
+    email: initial?.email || "",
+    address: initial?.address || "",
+    postal_code: initial?.postal_code || "",
+    city: initial?.city || "",
+  });
   const [files, setFiles] = useState({});
-  const [isAgent, setIsAgent] = useState(false);
+  const [removedDocIds, setRemovedDocIds] = useState([]);
+  const [isAgent, setIsAgent] = useState(existingDocs.some((d) => d.kind === "entretiens"));
   const [errors, setErrors] = useState({});
   const [certified, setCertified] = useState(false);
-  const [consentProcessing, setConsentProcessing] = useState(false);
-  const [consentVivier, setConsentVivier] = useState(false);
+  const [consentProcessing, setConsentProcessing] = useState(isEdit);
+  const [consentVivier, setConsentVivier] = useState(isEdit ? !!initial?.consent_vivier : false);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const existingByKind = (kind) => existingDocs.filter((d) => d.kind === kind && !removedDocIds.includes(d.id));
 
   function validateStep1() {
     const e = {};
@@ -46,11 +58,17 @@ export default function ApplyForm({ offer }) {
   }
   function validateStep2() {
     const e = {};
-    if (!files.cv) e.cv = "Le CV est obligatoire";
-    for (const [kind, file] of Object.entries(files)) {
-      if (!file) continue;
-      if (!extOk(file.name)) e[kind] = "Format non accepté";
-      else if (file.size > MAX_FILE_MB * 1024 * 1024) e[kind] = `Fichier trop volumineux (max ${MAX_FILE_MB} Mo)`;
+    const cvCount = (files.cv?.length || 0) + existingByKind("cv").length;
+    if (cvCount === 0) e.cv = "Le CV est obligatoire";
+    const dipCount = (files.diplome?.length || 0) + existingByKind("diplome").length;
+    if (offer.diploma_required && dipCount === 0) {
+      e.diplome = `Le diplôme demandé est obligatoire${offer.diploma_label ? ` : ${offer.diploma_label}` : ""}`;
+    }
+    for (const [kind, arr] of Object.entries(files)) {
+      for (const file of arr || []) {
+        if (!extOk(file.name)) { e[kind] = "Format non accepté"; break; }
+        if (file.size > MAX_FILE_MB * 1024 * 1024) { e[kind] = `Fichier trop volumineux (max ${MAX_FILE_MB} Mo)`; break; }
+      }
     }
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -61,9 +79,42 @@ export default function ApplyForm({ offer }) {
     if (step === 1 && !validateStep2()) return;
     setStep((s) => Math.min(s + 1, 2));
   }
-  function onFile(kind, file) {
-    setFiles((prev) => ({ ...prev, [kind]: file || undefined }));
+  function addFiles(kind, list) {
+    const incoming = Array.from(list || []).filter(Boolean);
+    if (incoming.length === 0) return;
+    setFiles((prev) => {
+      const cur = prev[kind] || [];
+      const multi = DOC_KINDS[kind]?.multiple;
+      return { ...prev, [kind]: multi ? [...cur, ...incoming] : [incoming[0]] };
+    });
     setErrors((e) => ({ ...e, [kind]: undefined }));
+  }
+  function removeFile(kind, idx) {
+    setFiles((prev) => {
+      const cur = [...(prev[kind] || [])];
+      cur.splice(idx, 1);
+      const next = { ...prev };
+      if (cur.length) next[kind] = cur; else delete next[kind];
+      return next;
+    });
+  }
+  function clearKind(kind) {
+    setFiles((prev) => { const n = { ...prev }; delete n[kind]; return n; });
+  }
+  function removeExisting(docId) {
+    setRemovedDocIds((prev) => (prev.includes(docId) ? prev : [...prev, docId]));
+  }
+  // Libellé/obligation du champ "diplôme" pilotés par l'offre.
+  function kindMeta(kind, meta) {
+    if (kind === "diplome" && offer.diploma_label) {
+      return {
+        label: `Diplôme demandé : ${offer.diploma_label}`,
+        required: !!offer.diploma_required,
+        hint: offer.diploma_required ? "obligatoire" : "facultatif",
+        multiple: true,
+      };
+    }
+    return meta;
   }
 
   async function submit() {
@@ -72,15 +123,25 @@ export default function ApplyForm({ offer }) {
     setSubmitting(true); setServerError("");
     try {
       const fd = new FormData();
-      fd.append("offer_id", String(offer.id));
-      fd.append("consent_processing", consentProcessing ? "1" : "0");
       fd.append("consent_vivier", consentVivier ? "1" : "0");
       Object.entries(form).forEach(([k, v]) => fd.append(k, v));
-      Object.entries(files).forEach(([kind, file]) => { if (file) fd.append(kind, file); });
-      const res = await fetch("/api/candidatures", { method: "POST", body: fd });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Erreur lors de l'envoi.");
-      router.push(`/candidature-envoyee?ref=${encodeURIComponent(data.public_ref)}`);
+      Object.entries(files).forEach(([kind, arr]) => (arr || []).forEach((file) => fd.append(kind, file)));
+
+      if (isEdit) {
+        removedDocIds.forEach((id) => fd.append("removed_doc_ids", String(id)));
+        const res = await fetch(`/api/candidatures/${token}`, { method: "PUT", body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erreur lors de l'enregistrement.");
+        router.push(`/ma-candidature/${token}?saved=1`);
+        router.refresh();
+      } else {
+        fd.append("offer_id", String(offer.id));
+        fd.append("consent_processing", consentProcessing ? "1" : "0");
+        const res = await fetch("/api/candidatures", { method: "POST", body: fd });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Erreur lors de l'envoi.");
+        router.push(`/candidature-envoyee?ref=${encodeURIComponent(data.public_ref)}${data.edit_token ? `&t=${encodeURIComponent(data.edit_token)}` : ""}`);
+      }
     } catch (err) {
       setServerError(err.message); setSubmitting(false);
     }
@@ -133,33 +194,51 @@ export default function ApplyForm({ offer }) {
             <p className="mt-1 text-sm" style={{ color: "var(--sjr-muted)" }}>Formats acceptés : PDF, Word, image — {MAX_FILE_MB} Mo maximum par fichier.</p>
 
             <label className="mt-4 flex items-center gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)", background: "var(--sjr-primary-soft)" }}>
-              <input type="checkbox" checked={isAgent} onChange={(e) => { const v = e.target.checked; setIsAgent(v); if (!v) onFile("entretiens", null); }} className="h-4 w-4" />
+              <input type="checkbox" checked={isAgent} onChange={(e) => { const v = e.target.checked; setIsAgent(v); if (!v) { clearKind("entretiens"); existingByKind("entretiens").forEach((d) => removeExisting(d.id)); } }} className="h-4 w-4" />
               <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>
                 Je suis déjà agent / fonctionnaire titulaire en collectivité
               </span>
             </label>
 
             <div className="mt-5 space-y-3">
-              {Object.entries(DOC_KINDS).filter(([kind, meta]) => !meta.agentOnly || isAgent).map(([kind, meta]) => (
-                <div key={kind} className="rounded-lg border p-4" style={{ borderColor: errors[kind] ? "#f43f5e" : "var(--sjr-line)" }}>
-                  <div className="flex flex-wrap items-center justify-between gap-3">
-                    <div className="flex items-center gap-3">
-                      <IconDoc className="h-5 w-5" style={{ color: "var(--sjr-primary)" }} />
-                      <div>
+              {Object.entries(DOC_KINDS).filter(([kind, meta]) => !meta.agentOnly || isAgent).map(([kind, rawMeta]) => {
+                const meta = kindMeta(kind, rawMeta);
+                const chosen = files[kind] || [];
+                const existing = existingByKind(kind);
+                return (
+                  <div key={kind} className="rounded-lg border p-4" style={{ borderColor: errors[kind] ? "#f43f5e" : "var(--sjr-line)" }}>
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <IconDoc className="h-5 w-5" style={{ color: "var(--sjr-primary)" }} />
                         <div className="text-sm font-medium" style={{ color: "var(--sjr-ink)" }}>
                           {meta.label} <span className="text-xs font-normal" style={{ color: meta.required ? "#e11d48" : "var(--sjr-muted)" }}>({meta.hint})</span>
                         </div>
-                        {files[kind] && <div className="text-xs text-emerald-600">✓ {files[kind].name}</div>}
                       </div>
+                      <label className="btn-outline cursor-pointer text-xs">
+                        {meta.multiple ? "Ajouter un/des fichier(s)" : ((chosen.length || existing.length) ? "Remplacer" : "Choisir un fichier")}
+                        <input type="file" className="hidden" multiple={!!meta.multiple} accept={ACCEPTED_EXT.join(",")} onChange={(e) => { addFiles(kind, e.target.files); e.target.value = ""; }} />
+                      </label>
                     </div>
-                    <label className="btn-outline cursor-pointer text-xs">
-                      {files[kind] ? "Remplacer" : "Choisir un fichier"}
-                      <input type="file" className="hidden" accept={ACCEPTED_EXT.join(",")} onChange={(e) => onFile(kind, e.target.files?.[0])} />
-                    </label>
+                    {(existing.length > 0 || chosen.length > 0) && (
+                      <ul className="mt-3 space-y-1.5">
+                        {existing.map((d) => (
+                          <li key={`e${d.id}`} className="flex items-center justify-between gap-3 rounded-md px-2.5 py-1.5" style={{ background: "#f1f5f9" }}>
+                            <span className="truncate text-xs" style={{ color: "var(--sjr-muted)" }}>📎 {d.original_name} <span className="opacity-70">(déjà envoyé)</span></span>
+                            <button type="button" className="shrink-0 text-xs text-rose-600 hover:underline" onClick={() => removeExisting(d.id)}>Retirer</button>
+                          </li>
+                        ))}
+                        {chosen.map((file, idx) => (
+                          <li key={`n${idx}`} className="flex items-center justify-between gap-3 rounded-md px-2.5 py-1.5" style={{ background: "var(--sjr-primary-soft)" }}>
+                            <span className="truncate text-xs" style={{ color: "var(--sjr-primary-dark)" }}>✓ {file.name}</span>
+                            <button type="button" className="shrink-0 text-xs text-rose-600 hover:underline" onClick={() => removeFile(kind, idx)}>Retirer</button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {errors[kind] && <p className="mt-2 text-xs text-rose-600">{errors[kind]}</p>}
                   </div>
-                  {errors[kind] && <p className="mt-2 text-xs text-rose-600">{errors[kind]}</p>}
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}
@@ -186,9 +265,12 @@ export default function ApplyForm({ offer }) {
             <div className="mt-4">
               <div className="text-sm font-medium" style={{ color: "var(--sjr-ink)" }}>Documents joints</div>
               <ul className="mt-1 text-sm" style={{ color: "var(--sjr-muted)" }}>
-                {Object.entries(DOC_KINDS).map(([kind, meta]) =>
-                  files[kind] ? <li key={kind}>✓ {meta.label} — {files[kind].name}</li> : null
-                )}
+                {Object.entries(DOC_KINDS).flatMap(([kind, meta]) => {
+                  const label = kindMeta(kind, meta).label;
+                  const ex = existingByKind(kind).map((d) => <li key={`re${d.id}`}>✓ {label} — {d.original_name}</li>);
+                  const nw = (files[kind] || []).map((file, idx) => <li key={`rn${kind}${idx}`}>✓ {label} — {file.name}</li>);
+                  return [...ex, ...nw];
+                })}
               </ul>
             </div>
 
@@ -197,13 +279,15 @@ export default function ApplyForm({ offer }) {
               <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>Je certifie l'exactitude des informations renseignées.</span>
             </label>
 
-            <label className="mt-3 flex items-start gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)" }}>
-              <input type="checkbox" checked={consentProcessing} onChange={(e) => setConsentProcessing(e.target.checked)} className="mt-0.5 h-4 w-4" />
-              <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>
-                J'accepte que les informations et documents transmis soient traités par la Ville de Saint-Jean-de-la-Ruelle
-                dans le cadre de l'étude de ma candidature. <span className="text-rose-500">*</span>
-              </span>
-            </label>
+            {!isEdit && (
+              <label className="mt-3 flex items-start gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)" }}>
+                <input type="checkbox" checked={consentProcessing} onChange={(e) => setConsentProcessing(e.target.checked)} className="mt-0.5 h-4 w-4" />
+                <span className="text-sm" style={{ color: "var(--sjr-ink)" }}>
+                  J'accepte que les informations et documents transmis soient traités par la Ville de Saint-Jean-de-la-Ruelle
+                  dans le cadre de l'étude de ma candidature. <span className="text-rose-500">*</span>
+                </span>
+              </label>
+            )}
 
             <label className="mt-3 flex items-start gap-3 rounded-lg border p-4" style={{ borderColor: "var(--sjr-line)" }}>
               <input type="checkbox" checked={consentVivier} onChange={(e) => setConsentVivier(e.target.checked)} className="mt-0.5 h-4 w-4" />
@@ -229,11 +313,12 @@ export default function ApplyForm({ offer }) {
           {step < 2 ? (
             <button className="btn-primary" onClick={next}>Continuer</button>
           ) : (
-            <button className="btn-accent" onClick={submit} disabled={submitting}>{submitting ? "Envoi…" : "Envoyer ma candidature"}</button>
+            <button className="btn-accent" onClick={submit} disabled={submitting}>
+              {submitting ? "Envoi…" : isEdit ? "Enregistrer les modifications" : "Envoyer ma candidature"}
+            </button>
           )}
         </div>
       </div>
     </div>
   );
 }
-

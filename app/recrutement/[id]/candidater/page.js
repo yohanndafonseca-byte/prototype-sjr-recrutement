@@ -11,7 +11,7 @@ export const dynamic = "force-dynamic";
 export default async function CandidaterPage({ params }) {
   const o = await getPublicOffer(Number(params.id));
   if (!o) notFound();
-  const offer = { id: o.id, title: o.title, positions_total: o.positions_total, contract_type: o.contract_type, location: o.location };
+  const offer = { id: o.id, title: o.title, positions_total: o.positions_total, contract_type: o.contract_type, location: o.location, diploma_label: o.diploma_label || "", diploma_required: !!o.diploma_required };
 
   return (
     <div className="flex min-h-screen flex-col">
