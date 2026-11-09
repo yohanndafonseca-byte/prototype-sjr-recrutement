@@ -9,7 +9,7 @@ export default function LoginPage() {
     <div className="grid min-h-screen place-items-center px-4" style={{ background: "linear-gradient(160deg,var(--sjr-primary-soft),var(--sjr-bg))" }}>
       <div className="w-full max-w-md">
         <div className="mb-6 text-center">
-          <span className="mx-auto mb-3 grid h-12 w-12 place-items-center rounded-xl font-black text-white" style={{ background: "var(--sjr-primary)" }}>SJR</span>
+          <img src="/logo-sjr.png" alt="Ville de Saint-Jean-de-la-Ruelle" className="mx-auto mb-3 h-16 w-auto" />
           <h1 className="text-xl font-bold" style={{ color: "var(--sjr-ink)" }}>Espace RH — Recrutement</h1>
           <p className="text-sm" style={{ color: "var(--sjr-muted)" }}>Ville de Saint-Jean-de-la-Ruelle</p>
         </div>

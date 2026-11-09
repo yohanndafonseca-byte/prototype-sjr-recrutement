@@ -16,7 +16,7 @@ export default async function AdminLayout({ children }) {
       <header className="sticky top-0 z-20 border-b bg-white/90 backdrop-blur" style={{ borderColor: "var(--sjr-line)" }}>
         <div className="mx-auto flex max-w-[1400px] items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <span className="grid h-9 w-9 place-items-center rounded-lg font-black text-white" style={{ background: "var(--sjr-primary)" }}>SJR</span>
+            <img src="/logo-sjr.png" alt="Ville de Saint-Jean-de-la-Ruelle" className="h-10 w-auto" />
             <div className="leading-tight">
               <div className="text-sm font-bold" style={{ color: "var(--sjr-ink)" }}>Recrutement · Espace RH</div>
               <div className="text-xs" style={{ color: "var(--sjr-muted)" }}>Ville de Saint-Jean-de-la-Ruelle</div>

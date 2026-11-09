@@ -4,7 +4,7 @@ export default function PublicFooter() {
       <div className="container-sjr grid gap-8 py-12 md:grid-cols-3">
         <div>
           <div className="flex items-center gap-2">
-            <span className="grid h-9 w-9 place-items-center rounded-md bg-white/15 font-black">SJR</span>
+            <span className="grid h-10 w-10 place-items-center rounded-md bg-white p-1"><img src="/logo-sjr.png" alt="Ville de Saint-Jean-de-la-Ruelle" className="h-full w-full object-contain" /></span>
             <span className="font-semibold">Ville de Saint-Jean-de-la-Ruelle</span>
           </div>
           <p className="mt-4 text-sm opacity-80">
