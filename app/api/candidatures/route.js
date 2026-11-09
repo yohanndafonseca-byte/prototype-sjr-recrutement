@@ -14,6 +14,11 @@ function extOk(name) {
 export async function POST(req) {
   try {
     const fd = await req.formData();
+
+    // Anti-spam : si le champ piège "website" est rempli, c'est un robot.
+    // On renvoie un faux succès (le robot n'insiste pas) sans rien enregistrer.
+    if (fd.get("website")) return NextResponse.json({ ok: true, public_ref: "—" });
+
     const offerId = Number(fd.get("offer_id"));
     const offer = await getPublicOffer(offerId);
     if (!offer) return NextResponse.json({ error: "Cette offre n'est plus disponible." }, { status: 400 });

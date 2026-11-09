@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unauthorized } from "@/lib/auth";
 import * as T from "@/lib/taxonomy";
 
 export const runtime = "nodejs";
@@ -10,6 +11,7 @@ const MAP = {
 };
 
 export async function POST(req) {
+  const deny = await unauthorized(); if (deny) return deny;
   try {
     const b = await req.json();
     const fn = MAP[b.level]?.[b.op];

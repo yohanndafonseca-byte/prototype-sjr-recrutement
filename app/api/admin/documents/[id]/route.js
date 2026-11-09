@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
+import { unauthorized } from "@/lib/auth";
 import { getDocumentContent } from "@/lib/applications";
 
 export const runtime = "nodejs";
 
 export async function GET(req, { params }) {
+  const deny = await unauthorized(); if (deny) return deny;
   const doc = await getDocumentContent(Number(params.id));
   if (!doc) return NextResponse.json({ error: "Document introuvable" }, { status: 404 });
   const data = doc.buffer;

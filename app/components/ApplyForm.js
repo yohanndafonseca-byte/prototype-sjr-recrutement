@@ -44,6 +44,7 @@ export default function ApplyForm({ offer, mode = "create", initial = null, exis
   const [consentVivier, setConsentVivier] = useState(isEdit ? !!initial?.consent_vivier : false);
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
+  const [hp, setHp] = useState(""); // champ piège anti-spam (honeypot)
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
   const existingByKind = (kind) => existingDocs.filter((d) => d.kind === kind && !removedDocIds.includes(d.id));
@@ -137,6 +138,7 @@ export default function ApplyForm({ offer, mode = "create", initial = null, exis
       } else {
         fd.append("offer_id", String(offer.id));
         fd.append("consent_processing", consentProcessing ? "1" : "0");
+        fd.append("website", hp);
         const res = await fetch("/api/candidatures", { method: "POST", body: fd });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Erreur lors de l'envoi.");
@@ -164,6 +166,10 @@ export default function ApplyForm({ offer, mode = "create", initial = null, exis
       </ol>
 
       <div className="card p-6 md:p-8">
+        {/* Anti-spam : champ piège invisible — un humain ne le voit pas, un robot le remplit. */}
+        <input type="text" name="website" tabIndex={-1} autoComplete="off" aria-hidden="true"
+          value={hp} onChange={(e) => setHp(e.target.value)}
+          style={{ position: "absolute", left: "-9999px", top: 0, width: 1, height: 1, opacity: 0 }} />
         {/* Étape 1 */}
         {step === 0 && (
           <div>

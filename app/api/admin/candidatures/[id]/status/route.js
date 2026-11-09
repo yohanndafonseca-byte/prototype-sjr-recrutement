@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { unauthorized } from "@/lib/auth";
 import { setStatus, getApplication } from "@/lib/applications";
 import { syncApplication } from "@/lib/sheets";
 
 export const runtime = "nodejs";
 
 export async function POST(req, { params }) {
+  const deny = await unauthorized(); if (deny) return deny;
   const { status } = await req.json().catch(() => ({}));
   try {
     const updated = await setStatus(Number(params.id), status);

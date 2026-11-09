@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unauthorized } from "@/lib/auth";
 import { getApplication, listDocumentsWithContent } from "@/lib/applications";
 import { buildDossierPdf } from "@/lib/dossier";
 
@@ -7,6 +8,7 @@ export const runtime = "nodejs";
 function slug(s) { return String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-zA-Z0-9]+/g, "_").replace(/^_|_$/g, ""); }
 
 export async function GET(_req, { params }) {
+  const deny = await unauthorized(); if (deny) return deny;
   const app = await getApplication(Number(params.id));
   if (!app) return NextResponse.json({ error: "Candidature introuvable" }, { status: 404 });
   const docs = await listDocumentsWithContent(app.id);

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { unauthorized } from "@/lib/auth";
 import { listApplications, getApplication } from "@/lib/applications";
 import { buildApplicationsWorkbook } from "@/lib/exportXlsx";
 
@@ -7,6 +8,7 @@ export const runtime = "nodejs";
 const IN_PROGRESS = ["a_etudier", "preselectionnee", "entretien", "retenue"];
 
 export async function GET(req) {
+  const deny = await unauthorized(); if (deny) return deny;
   const sp = req.nextUrl.searchParams;
   const statut = sp.get("statut") || "";
   const offre = sp.get("offre") || "";
